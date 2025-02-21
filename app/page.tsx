@@ -1,114 +1,99 @@
-import { Suspense } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { LEAGUES, getCurrentLeagues, getLeagueInfo } from './utils/api';
+import Image from 'next/image';
+import { LeagueSearch } from './components/LeagueSearch';
+import { LEAGUES } from './utils/api';
 
-export default async function HomePage() {
-  const currentLeagues = await getCurrentLeagues();
-  const leagueIds = Object.values(LEAGUES).map(league => league.id);
-  const activeLeagues = currentLeagues.filter(league => leagueIds.includes(league.id));
+export default function HomePage() {
+  const nationalLeagues = Object.entries(LEAGUES)
+    .filter(([_, league]) => league.type === 'NATIONAL')
+    .map(([key, league]) => ({ key, ...league }));
+
+  const internationalLeagues = Object.entries(LEAGUES)
+    .filter(([_, league]) => league.type === 'INTERNATIONAL')
+    .map(([key, league]) => ({ key, ...league }));
 
   return (
     <div className="space-y-8">
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-white mb-6">Competições em Andamento</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {activeLeagues.length > 0 ? (
-            activeLeagues.map((league) => (
+      <div className="max-w-xl mx-auto">
+        <LeagueSearch />
+      </div>
+
+      <div className="space-y-8">
+        <section>
+          <h2 className="text-xl font-bold text-white mb-4">Ligas Nacionais</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {nationalLeagues.map((league) => (
               <Link
-                key={league.id}
-                href={`/${Object.entries(LEAGUES).find(([_, l]) => l.id === league.id)?.[0].toLowerCase()}`}
-                className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors"
+                key={league.key}
+                href={`/leagues/${league.key.toLowerCase()}`}
+                className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors"
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12">
                     <Image
                       src={league.logo}
                       alt={league.name}
                       fill
                       className="object-contain"
-                      sizes="48px"
                     />
                   </div>
                   <div>
-                    <h2 className="text-white font-semibold">{league.name}</h2>
-                    <p className="text-gray-400 text-sm">{league.country}</p>
-                    <div className="flex items-center mt-1">
-                      <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      <span className="text-green-400 text-sm">Em andamento</span>
+                    <h3 className="font-medium text-white">{league.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="relative w-4 h-4">
+                        <Image
+                          src={league.flag}
+                          alt={league.country}
+                          fill
+                          className="object-contain rounded-sm"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-400">{league.country}</p>
                     </div>
                   </div>
                 </div>
               </Link>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8">
-              <p className="text-gray-400">Nenhuma competição em andamento no momento.</p>
-              <p className="text-gray-500 mt-2">
-                Confira o calendário das próximas competições no menu Competições.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Próximas Competições</h2>
-          <div className="space-y-4">
-            {Object.entries(LEAGUES)
-              .filter(([_, league]) => !activeLeagues.some(active => active.id === league.id))
-              .map(([key, league]) => (
-                <Link
-                  key={key}
-                  href={`/${key.toLowerCase()}`}
-                  className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="relative w-8 h-8">
-                      <Image
-                        src={league.logo || '/placeholder-league.png'}
-                        alt={league.name}
-                        fill
-                        className="object-contain"
-                        sizes="32px"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-white">{league.name}</h3>
-                      <p className="text-gray-400 text-sm">{league.country}</p>
+        <section>
+          <h2 className="text-xl font-bold text-white mb-4">Competições Internacionais</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {internationalLeagues.map((league) => (
+              <Link
+                key={league.key}
+                href={`/leagues/${league.key.toLowerCase()}`}
+                className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12">
+                    <Image
+                      src={league.logo}
+                      alt={league.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-white">{league.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="relative w-4 h-4">
+                        <Image
+                          src={league.flag}
+                          alt={league.country}
+                          fill
+                          className="object-contain rounded-sm"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-400">{league.country}</p>
                     </div>
                   </div>
-                  <div className="text-gray-400">Em breve</div>
-                </Link>
-              ))}
+                </div>
+              </Link>
+            ))}
           </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Destaques</h2>
-          <div className="space-y-4">
-            <p className="text-gray-400">
-              Acompanhe os principais campeonatos do Brasil e do mundo.
-              Fique por dentro de todas as estatísticas, resultados e classificações.
-            </p>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-white font-semibold mb-2">Campeonatos</h3>
-                <p className="text-gray-400 text-sm">
-                  {Object.keys(LEAGUES).length} competições disponíveis
-                </p>
-              </div>
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-white font-semibold mb-2">Ao Vivo</h3>
-                <p className="text-gray-400 text-sm">
-                  {activeLeagues.length} competições em andamento
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );

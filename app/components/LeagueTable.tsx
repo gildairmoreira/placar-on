@@ -1,40 +1,32 @@
 import Image from 'next/image';
-import { TeamStanding, getLeagueStandings, LEAGUES } from '../utils/api';
+import { TeamStanding, getLeagueStandings } from '../utils/api';
+import { Suspense } from 'react';
 
 interface LeagueTableProps {
   leagueId: number;
 }
 
-async function getStandings(leagueId: number) {
-  const currentYear = new Date().getFullYear();
-  return getLeagueStandings(leagueId, currentYear);
+async function getStandings(leagueId: number): Promise<TeamStanding[]> {
+  return getLeagueStandings(leagueId);
 }
 
-export default function LeagueTable({ leagueId }: LeagueTableProps) {
+function TableHeader() {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full">
-        <thead>
-          <tr className="text-gray-400 text-sm">
-            <th className="text-left py-2">#</th>
-            <th className="text-left py-2">Time</th>
-            <th className="text-center py-2">P</th>
-            <th className="text-center py-2">J</th>
-            <th className="text-center py-2">V</th>
-            <th className="text-center py-2">E</th>
-            <th className="text-center py-2">D</th>
-            <th className="text-center py-2">GP</th>
-            <th className="text-center py-2">GC</th>
-            <th className="text-center py-2">SG</th>
-            <th className="text-center py-2">%</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* @ts-expect-error Async Server Component */}
-          <TableRows leagueId={leagueId} />
-        </tbody>
-      </table>
-    </div>
+    <thead>
+      <tr className="text-gray-400 text-sm">
+        <th className="text-left py-2">#</th>
+        <th className="text-left py-2">Time</th>
+        <th className="text-center py-2">P</th>
+        <th className="text-center py-2">J</th>
+        <th className="text-center py-2">V</th>
+        <th className="text-center py-2">E</th>
+        <th className="text-center py-2">D</th>
+        <th className="text-center py-2">GP</th>
+        <th className="text-center py-2">GC</th>
+        <th className="text-center py-2">SG</th>
+        <th className="text-center py-2">%</th>
+      </tr>
+    </thead>
   );
 }
 
@@ -61,18 +53,33 @@ async function TableRows({ leagueId }: { leagueId: number }) {
             </div>
           </td>
           <td className="text-center py-2">{team.points}</td>
-          <td className="text-center py-2">{team.all.played}</td>
-          <td className="text-center py-2">{team.all.win}</td>
-          <td className="text-center py-2">{team.all.draw}</td>
-          <td className="text-center py-2">{team.all.lose}</td>
-          <td className="text-center py-2">{team.all.goals.for}</td>
-          <td className="text-center py-2">{team.all.goals.against}</td>
+          <td className="text-center py-2">{team.played}</td>
+          <td className="text-center py-2">{team.win}</td>
+          <td className="text-center py-2">{team.draw}</td>
+          <td className="text-center py-2">{team.lose}</td>
+          <td className="text-center py-2">{team.goalsFor}</td>
+          <td className="text-center py-2">{team.goalsAgainst}</td>
           <td className="text-center py-2">{team.goalsDiff}</td>
           <td className="text-center py-2">
-            {((team.points / (team.all.played * 3)) * 100).toFixed(1)}%
+            {((team.points / (team.played * 3)) * 100).toFixed(1)}%
           </td>
         </tr>
       ))}
     </>
+  );
+}
+
+export default function LeagueTable({ leagueId }: LeagueTableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full">
+        <TableHeader />
+        <tbody>
+          <Suspense fallback={<tr><td colSpan={11} className="text-center py-4">Carregando...</td></tr>}>
+            <TableRows leagueId={leagueId} />
+          </Suspense>
+        </tbody>
+      </table>
+    </div>
   );
 } 

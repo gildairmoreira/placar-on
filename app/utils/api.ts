@@ -14,14 +14,10 @@ const axiosInstance = axios.create({
 export interface League {
   id: number;
   name: string;
-  country: string;
-  type: 'League' | 'Cup' | 'Regional';
   logo: string;
-  season?: {
-    start: string;
-    end: string;
-    current: boolean;
-  };
+  country: string;
+  flag: string;
+  type: 'NATIONAL' | 'INTERNATIONAL';
 }
 
 export interface TeamStanding {
@@ -32,18 +28,13 @@ export interface TeamStanding {
     logo: string;
   };
   points: number;
-  all: {
-    played: number;
-    win: number;
-    draw: number;
-    lose: number;
-    goals: {
-      for: number;
-      against: number;
-    };
-  };
   goalsDiff: number;
-  form: string;
+  played: number;
+  win: number;
+  draw: number;
+  lose: number;
+  goalsFor: number;
+  goalsAgainst: number;
 }
 
 export interface Match {
@@ -51,19 +42,9 @@ export interface Match {
     id: number;
     date: string;
     status: {
-      long: string;
       short: string;
+      elapsed: number | null;
     };
-    venue: {
-      name: string;
-      city: string;
-    };
-  };
-  league: {
-    id: number;
-    name: string;
-    round: string;
-    logo: string;
   };
   teams: {
     home: {
@@ -81,16 +62,6 @@ export interface Match {
     home: number | null;
     away: number | null;
   };
-  score: {
-    halftime: {
-      home: number | null;
-      away: number | null;
-    };
-    fulltime: {
-      home: number | null;
-      away: number | null;
-    };
-  };
 }
 
 export interface TopScorer {
@@ -99,122 +70,129 @@ export interface TopScorer {
     name: string;
     photo: string;
   };
-  team: {
-    id: number;
-    name: string;
-    logo: string;
-  };
-  statistics: Array<{
+  statistics: [{
+    team: {
+      id: number;
+      name: string;
+      logo: string;
+    };
     goals: {
       total: number;
-      assists: number;
     };
     games: {
       appearences: number;
-      minutes: number;
     };
-  }>;
+  }];
 }
 
 export const LEAGUES: Record<string, League> = {
-  BRASILEIRAO: {
-    id: 71,
-    name: 'Brasileirão',
-    country: 'Brasil',
-    type: 'League',
-    logo: 'https://media.api-sports.io/football/leagues/71.png'
-  },
-  PAULISTA: {
-    id: 475,
-    name: 'Campeonato Paulista',
-    country: 'Brasil',
-    type: 'Regional',
-    logo: 'https://media.api-sports.io/football/leagues/475.png'
-  },
-  CARIOCA: {
-    id: 476,
-    name: 'Campeonato Carioca',
-    country: 'Brasil',
-    type: 'Regional',
-    logo: 'https://media.api-sports.io/football/leagues/476.png'
-  },
-  MINEIRO: {
-    id: 477,
-    name: 'Campeonato Mineiro',
-    country: 'Brasil',
-    type: 'Regional',
-    logo: 'https://media.api-sports.io/football/leagues/477.png'
-  },
-  COPA_DO_BRASIL: {
-    id: 73,
-    name: 'Copa do Brasil',
-    country: 'Brasil',
-    type: 'Cup',
-    logo: 'https://media.api-sports.io/football/leagues/73.png'
-  },
-  LIBERTADORES: {
-    id: 13,
-    name: 'Copa Libertadores',
-    country: 'South America',
-    type: 'Cup',
-    logo: 'https://media.api-sports.io/football/leagues/13.png'
-  },
   PREMIER_LEAGUE: {
     id: 39,
     name: 'Premier League',
-    country: 'England',
-    type: 'League',
-    logo: 'https://media.api-sports.io/football/leagues/39.png'
+    logo: 'https://media-4.api-sports.io/football/leagues/39.png',
+    country: 'Inglaterra',
+    flag: 'https://media-4.api-sports.io/flags/gb.svg',
+    type: 'NATIONAL'
   },
   LALIGA: {
     id: 140,
     name: 'La Liga',
-    country: 'Spain',
-    type: 'League',
-    logo: 'https://media.api-sports.io/football/leagues/140.png'
+    logo: 'https://media-4.api-sports.io/football/leagues/140.png',
+    country: 'Espanha',
+    flag: 'https://media-4.api-sports.io/flags/es.svg',
+    type: 'NATIONAL'
+  },
+  BRASILEIRAO: {
+    id: 71,
+    name: 'Brasileirão Série A',
+    logo: 'https://media-4.api-sports.io/football/leagues/71.png',
+    country: 'Brasil',
+    flag: 'https://media-4.api-sports.io/flags/br.svg',
+    type: 'NATIONAL'
   },
   CHAMPIONS_LEAGUE: {
     id: 2,
-    name: 'UEFA Champions League',
-    country: 'Europe',
-    type: 'Cup',
-    logo: 'https://media.api-sports.io/football/leagues/2.png'
-  },
-  MUNDIAL: {
-    id: 21,
-    name: 'Mundial de Clubes',
-    country: 'World',
-    type: 'Cup',
-    logo: 'https://media.api-sports.io/football/leagues/21.png'
+    name: 'Champions League',
+    logo: 'https://media-4.api-sports.io/football/leagues/2.png',
+    country: 'Europa',
+    flag: 'https://media-4.api-sports.io/flags/eu.svg',
+    type: 'INTERNATIONAL'
   }
 };
 
 export const LEAGUE_CATEGORIES = {
-  BRAZILIAN: 'Campeonatos Brasileiros',
-  REGIONAL: 'Campeonatos Regionais',
+  EUROPE: 'Ligas Europeias',
+  BRAZIL: 'Futebol Brasileiro',
   INTERNATIONAL: 'Competições Internacionais'
 } as const;
 
-export const CATEGORIZED_LEAGUES = {
-  [LEAGUE_CATEGORIES.BRAZILIAN]: ['BRASILEIRAO', 'COPA_DO_BRASIL'],
-  [LEAGUE_CATEGORIES.REGIONAL]: ['PAULISTA', 'CARIOCA', 'MINEIRO'],
-  [LEAGUE_CATEGORIES.INTERNATIONAL]: ['LIBERTADORES', 'CHAMPIONS_LEAGUE', 'MUNDIAL', 'PREMIER_LEAGUE', 'LALIGA']
+export type LeagueCategory = keyof typeof LEAGUE_CATEGORIES;
+
+export const CATEGORIZED_LEAGUES: Record<LeagueCategory, string[]> = {
+  EUROPE: ['PREMIER_LEAGUE', 'LALIGA'],
+  BRAZIL: ['BRASILEIRAO'],
+  INTERNATIONAL: ['CHAMPIONS_LEAGUE']
 };
 
-export async function getLeagueStandings(leagueId: number, season: number): Promise<TeamStanding[]> {
+export async function getLeagueStandings(leagueId: number): Promise<TeamStanding[]> {
   try {
-    const { data } = await axiosInstance.get(`/standings?league=${leagueId}&season=${season}`);
-    return data.response[0]?.league?.standings[0] || [];
+    const currentYear = new Date().getFullYear();
+    const { data } = await axiosInstance.get(`/standings?league=${leagueId}&season=${currentYear}`);
+    const standings = data.response[0]?.league?.standings[0] || [];
+    
+    return standings.map((standing: any) => ({
+      rank: standing.rank,
+      team: {
+        id: standing.team.id,
+        name: standing.team.name,
+        logo: standing.team.logo,
+      },
+      points: standing.points,
+      goalsDiff: standing.goalsDiff,
+      played: standing.all.played,
+      win: standing.all.win,
+      draw: standing.all.draw,
+      lose: standing.all.lose,
+      goalsFor: standing.all.goals.for,
+      goalsAgainst: standing.all.goals.against,
+    }));
   } catch (error) {
     console.error('Error fetching standings:', error);
     return [];
   }
 }
 
-export async function getLeagueMatches(leagueId: number, season: number, next: number = 10): Promise<Match[]> {
+export async function getLeagueMatches(leagueId: number): Promise<Match[]> {
   try {
-    const { data } = await axiosInstance.get(`/fixtures?league=${leagueId}&season=${season}&next=${next}`);
-    return data.response || [];
+    const currentYear = new Date().getFullYear();
+    const { data } = await axiosInstance.get(`/fixtures?league=${leagueId}&season=${currentYear}&last=10`);
+    
+    return data.response.map((match: any) => ({
+      fixture: {
+        id: match.fixture.id,
+        date: match.fixture.date,
+        status: {
+          short: match.fixture.status.short,
+          elapsed: match.fixture.status.elapsed,
+        },
+      },
+      teams: {
+        home: {
+          id: match.teams.home.id,
+          name: match.teams.home.name,
+          logo: match.teams.home.logo,
+        },
+        away: {
+          id: match.teams.away.id,
+          name: match.teams.away.name,
+          logo: match.teams.away.logo,
+        },
+      },
+      goals: {
+        home: match.goals.home,
+        away: match.goals.away,
+      },
+    }));
   } catch (error) {
     console.error('Error fetching matches:', error);
     return [];
@@ -244,19 +222,40 @@ export async function getTeamMatches(teamId: number): Promise<{
   }
 }
 
-export async function getTopScorers(leagueId: number, season: number): Promise<TopScorer[]> {
+export async function getTopScorers(leagueId: number): Promise<TopScorer[]> {
   try {
-    const { data } = await axiosInstance.get(`/players/topscorers?league=${leagueId}&season=${season}`);
-    return data.response || [];
+    const currentYear = new Date().getFullYear();
+    const { data } = await axiosInstance.get(`/players/topscorers?league=${leagueId}&season=${currentYear}`);
+    
+    return data.response.map((scorer: any) => ({
+      player: {
+        id: scorer.player.id,
+        name: scorer.player.name,
+        photo: scorer.player.photo,
+      },
+      statistics: [{
+        team: {
+          id: scorer.statistics[0].team.id,
+          name: scorer.statistics[0].team.name,
+          logo: scorer.statistics[0].team.logo,
+        },
+        goals: {
+          total: scorer.statistics[0].goals.total,
+        },
+        games: {
+          appearences: scorer.statistics[0].games.appearences,
+        },
+      }],
+    }));
   } catch (error) {
     console.error('Error fetching top scorers:', error);
     return [];
   }
 }
 
-export async function getLeagueStatistics(leagueId: number, season: number) {
+export async function getLeagueStatistics(leagueId: number) {
   try {
-    const { data } = await axiosInstance.get(`/leagues/statistics?league=${leagueId}&season=${season}`);
+    const { data } = await axiosInstance.get(`/leagues/statistics?league=${leagueId}`);
     return data.response || null;
   } catch (error) {
     console.error('Error fetching league statistics:', error);
@@ -279,8 +278,7 @@ export async function searchTeams(query: string): Promise<Array<{ id: number; na
 }
 
 export async function getCurrentLeagues(): Promise<League[]> {
-  // For now, return all leagues as active
-  // In a real implementation, this would check the current date against league seasons
+  // Simulated API call - in a real app, this would fetch from your backend
   return Object.values(LEAGUES);
 }
 
